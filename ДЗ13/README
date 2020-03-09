@@ -1,0 +1,17 @@
+Vagrantfile
+
+CONFIGURATIONS
+php-fpm
+/etc/php-fpm.d/www.conf
+
+mariadb
+/etc/my.cnf.d/server.cnf
+
+nginx
+/etc/nginx/conf.d/default.conf
+
+zabbix-server
+/etc/zabbix/zabbix_server.conf
+
+zabbix_agentd.conf
+/etc/zabbix/zabbix_agentd.conf
