@@ -1,0 +1,85 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+  - name: install packages
+    yum: name={{ item }} state=latest 
+    with_items:
+      - mc
+      - net-tools
+      - traceroute
+
+
+- hosts: testClient1
+  become: yes
+  tasks:
+  - name: copy vlan100 config
+    copy: src=ifcfg-vlan100.client dest=/etc/sysconfig/network-scripts/ifcfg-vlan100 owner=root group=root mode=0640
+
+  - name: systemctl restart network
+    service: name=network state=restarted
+
+- hosts: testServer1
+  become: yes
+  tasks:
+  - name: copy vlan100 config
+    copy: src=ifcfg-vlan100.server dest=/etc/sysconfig/network-scripts/ifcfg-vlan100 owner=root group=root mode=0640
+
+  - name: systemctl restart network
+    service: name=network state=restarted
+
+- hosts: testClient2
+  become: yes
+  tasks:
+  - name: copy vlan101 config
+    copy: src=ifcfg-vlan101.client dest=/etc/sysconfig/network-scripts/ifcfg-vlan101 owner=root group=root mode=0640
+
+  - name: systemctl restart network
+    service: name=network state=restarted
+
+- hosts: testServer2
+  become: yes
+  tasks:
+  - name: copy vlan101 config
+    copy: src=ifcfg-vlan101.server dest=/etc/sysconfig/network-scripts/ifcfg-vlan101 owner=root group=root mode=0640
+
+  - name: systemctl restart network
+    service: name=network state=restarted
+
+- hosts: centralRouter
+  become: yes
+  tasks:
+  - name: copy vlan100 config
+    copy: src=ifcfg-vlan100.router dest=/etc/sysconfig/network-scripts/ifcfg-vlan100 owner=root group=root mode=0640
+
+  - name: copy vlan101 config
+    copy: src=ifcfg-vlan101.router dest=/etc/sysconfig/network-scripts/ifcfg-vlan101 owner=root group=root mode=0640
+
+  - name: copy eth1 bond config
+    copy: src=ifcfg-eth1.bond dest=/etc/sysconfig/network-scripts/ifcfg-eth1 owner=root group=root mode=0640
+
+  - name: copy eth2 bond config
+    copy: src=ifcfg-eth2.bond dest=/etc/sysconfig/network-scripts/ifcfg-eth2 owner=root group=root mode=0640
+    
+  - name: copy bond0 config
+    copy: src=ifcfg-bond0.router dest=/etc/sysconfig/network-scripts/ifcfg-bond0 owner=root group=root mode=0640
+
+  - name: systemctl restart network
+    service: name=network state=restarted
+
+- hosts: inetRouter
+  become: yes
+  tasks:
+
+  - name: copy eth1 bond config
+    copy: src=ifcfg-eth1.bond dest=/etc/sysconfig/network-scripts/ifcfg-eth1 owner=root group=root mode=0640
+
+  - name: copy eth2 bond config
+    copy: src=ifcfg-eth2.bond dest=/etc/sysconfig/network-scripts/ifcfg-eth2 owner=root group=root mode=0640
+    
+  - name: copy bond0 config
+    copy: src=ifcfg-bond0.inet dest=/etc/sysconfig/network-scripts/ifcfg-bond0 owner=root group=root mode=0640
+    
+  - name: systemctl restart network
+    service: name=network state=restarted
+
