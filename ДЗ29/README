@@ -1,0 +1,13 @@
+vagrantfile - конфигурация vagrant
+
+conf/conf.d_master - конфигурация мастера
+conf/conf.d_slave - конфигурация слейва
+
+# добавлены два значения на мастере
+INSERT INTO bookmaker (id,bookmaker_name) VALUES(2,'2xbet');
+INSERT INTO bookmaker (id,bookmaker_name) VALUES(7,'sealex');
+
+"master_table" # скриншот таблиц мастера
+"slave_table" # скриншот таблиц слейва
+"master_status" # статус мастера
+"slave_status" # статус репликации на слейве
