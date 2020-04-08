@@ -1,13 +1,66 @@
-vagrantfile - конфигурация vagrant
+# Lab№29. Mysql
+## Description
+* основная конфигурация vagrant
+*vagrantfile*
+* директория с конфигурациями Mysql
+*conf*
+* дамп БД
+*bet.dmp*
+## Steps
+1. Установка необходимых пакетов на ВМ master и slave
+> yum install http://www.percona.com/downloads/percona-release/redhat/0.1-6/percona-release-0.1-6.noarch.rpm -y
+> yum install Percona-Server-server-57 -y
 
-conf/conf.d_master - конфигурация мастера
-conf/conf.d_slave - конфигурация слейва
+2. Копирование конфигурации ВМ master и запуск Mysql
+> cp /vagrant/conf/conf.d_master/* /etc/my.cnf.d/
+> systemctl start mysql
 
-# добавлены два значения на мастере
-INSERT INTO bookmaker (id,bookmaker_name) VALUES(2,'2xbet');
-INSERT INTO bookmaker (id,bookmaker_name) VALUES(7,'sealex');
+3. Копирование конфигурации ВМ slave и запуск Mysql
+> cp /vagrant/conf/conf.d_slave/* /etc/my.cnf.d/
+> systemctl start mysql
 
-"master_table" # скриншот таблиц мастера
-"slave_table" # скриншот таблиц слейва
-"master_status" # статус мастера
-"slave_status" # статус репликации на слейве
+4. Восстановление БД из дампа на ВМ master
+> mysql -uroot -p
+**enter password**
+> mysql>CREATE DATABASE bet;
+> mysql -uroot -p -D bet < /vagrant/bet.dmp
+**enter password**
+
+5. Создание пользователя для репликации на ВМ master
+> mysql -uroot -p
+**enter password**
+> mysql>USE bet;
+> mysql>CREATE USER 'repl'@'%' IDENTIFIED BY 'Covid2020!';
+> mysql>SELECT user,host FROM mysql.user where user='repl';
+> mysql>GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%' IDENTIFIED BY 'Covid2020!';
+
+6. Выполнение дампа БД на ВМ master
+> mysqldump --all-databases --triggers --routines --master-data --ignore-table=bet.events_on_demand --ignore-table=bet.v_same_event -uroot -p > /vagrant/master.sql
+
+7. Копирование дампа через nfs на ВМ slave
+8. Восстановление БД на ВМ slave
+> mysql -uroot -p
+**enter password**
+mysql>CREATE DATABASE bet;
+mysql>SOURCE /vagrant/master.sql
+
+9. Запуск репликации
+> mysql>CHANGE MASTER TO MASTER_HOST = "192.168.11.150", MASTER_PORT = 3306, MASTER_USER = "repl", MASTER_PASSWORD = "Covid2020!", MASTER_AUTO_POSITION = 1;
+> mysql>START SLAVE;
+10. Добавление в таблицу новых данных и вывод таблиц на ВМ master 
+> mysql>INSERT INTO bookmaker (id,bookmaker_name) VALUES(2,'2xbet');
+> mysql>INSERT INTO bookmaker (id,bookmaker_name) VALUES(7,'sealex');
+mysql>SELECT * FROM bookmaker;
+
+[master_table]https://github.com/nikitoz87/otus-linux/blob/master/%D0%94%D0%9729/Screenshots/master_table.JPG
+
+11. Вывод статуса состояния мастера на ВМ master
+[master_status]https://github.com/nikitoz87/otus-linux/blob/master/%D0%94%D0%9729/Screenshots/master_status.JPG
+
+12. Вывод таблиц на ВМ slave и состояния репликации
+> mysql>SELECT * FROM bookmaker;
+> mysql>SHOW SLAVE STATUS\G
+
+[slave_table]https://github.com/nikitoz87/otus-linux/blob/master/%D0%94%D0%9729/Screenshots/slave_table.JPG
+
+[slave_status]https://github.com/nikitoz87/otus-linux/blob/master/%D0%94%D0%9729/Screenshots/slave_status.JPG
