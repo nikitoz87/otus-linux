@@ -1,5 +1,5 @@
 # Lab №20. Vlans, LACP
-## Discription
+## Description
 Ифраструктура лабораторной работы разворачивается из нескольких файлов
 1. Основная конфигурация vagrant 
 *vagranfile*
