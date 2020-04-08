@@ -1,18 +1,46 @@
- # Вся инфраструктура лабораторной работы представлена в "vagranfile" и содержимом папки "provisioning"
- # Схема сети взята из источника, представленного в задании к лабораторной работе:
- https://otus.ru/media-private/c9/84/network23-54017-c98457.png?hash=CYc4-e-GxyR7B5uhS0VNQw&expires=1586213689
- # Задание разворачивается после выполнения:
- vagrant up
- 
- # Агреггирование. Статус с обоими включенными портами - скриншот "bond0.png"
- # Команда проверки состояния бонда:
- cat /proc/net/bonding/bond0 
- # Физическое отключение интерфейса eth1:
- ifdown eth1
- # Скриншот состояния бонда и доступности противоположного узла 192.168.255.2 - "down_eth1.png"
- # Включение eth1: 
- ifup eth1
- # Физическое отключение интерфейса eth2:
- ifdown eth2
- # Скриншот состояния бонда и доступности противоположного узла 192.168.255.2 - "down_eth2.png"
- 
+# Lab №20. Vlans, LACP
+## Discription
+Ифраструктура лабораторной работы разворачивается из нескольких файлов
+1. Основная конфигурация vagrant 
+*vagranfile*
+2. Используется ansible playbook
+*provisioning\playbook.yml*
+3. Конфигурационные файлы ВМ представлены в директории
+*provisioning*
+
+##  Scheme 
+Схема взята из задания к лабораторной работе
+[OTUS] https://otus.ru/media-private/c9/84/network23-54017-c98457.png?hash=CYc4-e-GxyR7B5uhS0VNQw&expires=1586213689
+
+## Steps
+1. Настройка Vlan 
+* настройка клиентских ВМ testClient
+*ifcfg-vlanX.client*
+* настройка серверных ВМ testServer
+*ifcfg-vlanX.server*
+* настройка интерфейсов внутненней сети на centralRouter
+*ifcfg-vlanX.router*
+* после копирования файлов сетевых интерфейсов происходит перезапуск сети на каждом хосте
+
+2. Настройка агреггирования
+* настройка сетевых интерфейсов, идентична для inetRouter и centralRouter
+*ifcfg-eth1.bond*
+*ifcfg-eth2.bond*
+* настройка bond для centralRouter
+*ifcfg-bond0.router*
+* настройка bond для inetRouter
+*ifcfg-bond0.inet*
+* после копирования файлов сетевых интерфейсов происходит перезапуск сети на каждом хосте
+
+3. Проверка работы агреггирования
+* Состояние бонда на inetRouter
+[bond0]https://github.com/nikitoz87/otus-linux/blob/master/%D0%94%D0%9720/Screenshots/bond0.png
+* Физическое отключение интерфейса eth1 на inetRouter командой
+>  ifdown eth1
+* Состояние бонда на inetRouter и проверка доступности IP адреса 192.168.255.2 противоположного узла centralRouter
+[down_eth1]https://github.com/nikitoz87/otus-linux/blob/master/%D0%94%D0%9720/Screenshots/down_eth1.png
+* Включение eth1 и отключение интерфейса eth2 на inetRouter командами
+>  ifup eth1
+>  ifdown eth2
+* Состояние бонда на inetRouter и проверка доступности IP адреса 192.168.255.2 противоположного узла centralRouter
+[down_eth2]https://github.com/nikitoz87/otus-linux/blob/master/%D0%94%D0%9720/Screenshots/down_eth2.png
